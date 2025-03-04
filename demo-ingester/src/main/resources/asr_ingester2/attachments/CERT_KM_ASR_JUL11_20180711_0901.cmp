@@ -1,0 +1,19 @@
+ASRFile: CERT_KM_ASR_JUL11_20180711_0901.cmp
+ProcessStart: 2025-03-04 15:23:50, ProcessEnd: 2025-03-04 15:23:53
+BKP/84 Details:
+ Line: 00000015, ProcessStart: 2025-03-04 15:23:50, PNR: KGWMXQ, SaleDate: 2018-07-10, PCC: FFP, PaymentMethod: CCVI, State: ERROR    
+ Line: 00000027, ProcessStart: 2025-03-04 15:23:50, PNR: HKZXTB, SaleDate: 2018-07-10, PCC: FFP, PaymentMethod: CCVI, State: ERROR    
+ Line: 00000037, ProcessStart: 2025-03-04 15:23:50, PNR: QFMTKI, SaleDate: 2018-07-10, PCC: FFP, PaymentMethod: CCCA, State: ERROR    
+ Line: 00000049, ProcessStart: 2025-03-04 15:23:50, PNR: QGRVNV, SaleDate: 2018-07-10, PCC: FFP, PaymentMethod: CCVI, State: ERROR    
+ Line: 00000061, ProcessStart: 2025-03-04 15:23:50, PNR: JRKDBP, SaleDate: 2018-07-10, PCC: FFP, PaymentMethod: CCVI, State: ERROR    
+ Line: 00000074, ProcessStart: 2025-03-04 15:23:50, PNR: KGONEN, SaleDate: 2018-07-10, PCC: FFP, PaymentMethod: CCCA, State: ERROR    
+ Line: 00000091, ProcessStart: 2025-03-04 15:23:50, PNR: KFNSLP, SaleDate: 2018-07-10, PCC: WDZ, PaymentMethod: CCPS, State: CHANGED  
+ Line: 00000142, ProcessStart: 2025-03-04 15:23:51, PNR: KGAJST, SaleDate: 2018-07-10, PCC: WDZ, PaymentMethod: CCPS, State: CHANGED  
+ Line: 00000232, ProcessStart: 2025-03-04 15:23:52, PNR: KIVGFS, SaleDate: 2018-07-10, PCC: WDZ, PaymentMethod: CCPS, State: CHANGED  
+ Line: 00000308, ProcessStart: 2025-03-04 15:23:53, PNR: KJBCXG, SaleDate: 2018-07-10, PCC: WDZ, PaymentMethod: CA,   State: UNCHANGED
+ Line: 00000354, ProcessStart: 2025-03-04 15:23:53, PNR: KJETTW, SaleDate: 2018-07-10, PCC: WDZ, PaymentMethod: CA,   State: UNCHANGED
+ Line: 00000435, ProcessStart: 2025-03-04 15:23:53, PNR: HMEPMA, SaleDate: 2018-07-10, PCC: WDZ, PaymentMethod: CK,   State: UNCHANGED
+ Line: 00000504, ProcessStart: 2025-03-04 15:23:53, PNR: JRASHR, SaleDate: 2018-07-10, PCC: WDZ, PaymentMethod: CK,   State: UNCHANGED
+ Line: 00000518, ProcessStart: 2025-03-04 15:23:53, PNR: HMGDLM, SaleDate: 2018-07-10, PCC: WDZ, PaymentMethod: CA,   State: UNCHANGED
+ Line: 00000531, ProcessStart: 2025-03-04 15:23:53, PNR: KJLDQC, SaleDate: 2018-07-10, PCC: WDZ, PaymentMethod: CA,   State: UNCHANGED
+
