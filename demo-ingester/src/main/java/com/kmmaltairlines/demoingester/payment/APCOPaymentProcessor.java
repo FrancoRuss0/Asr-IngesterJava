@@ -34,6 +34,12 @@ public class APCOPaymentProcessor {
 	public APCOPaymentProcessor(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
+	
+	// database connection
+	public Connection connectToDatabase() throws SQLException {
+		Connection connection = dataSource.getConnection();
+		return connection;
+	}
 
 	// select APCO payments lookup
 	public List<Map<String, Object>> lookupAPCOPayment(String pnr, String authCode, java.sql.Date saleDate,
@@ -48,8 +54,7 @@ public class APCOPaymentProcessor {
 		String query = "SELECT PNR, AMOUNT, AUTHCODE, CARDNUM2 FROM PARIS.APCO_PAYMENTS WHERE TRNTYPE = 'AUTH' "
 				+ "AND PNR = ? AND AUTHCODE = ? AND TRNDATE = ? AND AMOUNT = ?";
 
-		try (Connection connection = dataSource.getConnection();
-				PreparedStatement stmt = connection.prepareStatement(query)) {
+		try (PreparedStatement stmt = connectToDatabase().prepareStatement(query)) {
 
 			stmt.setString(1, pnr);
 			stmt.setString(2, authCode);
@@ -73,7 +78,6 @@ public class APCOPaymentProcessor {
 	}
 
 	// lookup-APCO-payment-subflow
-	// TO-DO: rivedere
 	public void processAPCOPayment(StationTransaction trx, BKP84 form) {
 		if (trx == null || form == null) {
 			log.error("Error: One of the parameter is null.");
@@ -85,8 +89,6 @@ public class APCOPaymentProcessor {
 		String authCode = (firstGroup != null) ? firstGroup.getAuthCode() : null;
 
 		if (authCode != null) {
-//			StationTransactionGroup group = trx.getStationRecord().getStationTransactionGroups()
-//					.get(String.format("%s-%s", pnr, authCode));
 			
 			java.sql.Date saleDate = trx.getSaleDateAsSQLDate();
 
