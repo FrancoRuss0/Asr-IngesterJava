@@ -15,7 +15,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.kmmaltairlines.demoingester.config.AsrFileConfig;
@@ -31,7 +30,7 @@ public class ReadFileStreamProcessor {
 	private String filename;
 	private AsrFileConfig fileConfig;
 	private StreamReader streamReader;
-	private List<String> processedFilenames = new ArrayList<>();
+	private Set<String> processedFilenames = new HashSet<>();
 	private APCOPaymentProcessor paymentProcessor;
 
 	public ReadFileStreamProcessor(AsrFileConfig fileConfig, StreamReader streamReader,
@@ -40,19 +39,6 @@ public class ReadFileStreamProcessor {
 		this.streamReader = streamReader;
 		this.paymentProcessor = paymentProcessor;
 		this.filename = streamReader.getFilename();
-	}
-
-	@Scheduled(fixedRateString = "#{@asrFileConfig.pollingFrequency}")
-	public void scanAndProcessFiles() {
-		log.info("Scanning for new files...");
-
-		List<ASRReport> reports = process();
-
-		if (reports.isEmpty()) {
-			log.error("No files found.");
-		} else {
-			log.info("Processed {} new ASR reports.", reports.size());
-		}
 	}
 
 	public List<ASRReport> process() {
@@ -70,18 +56,14 @@ public class ReadFileStreamProcessor {
 				continue;
 			}
 
+			String currentFilename = file.getName();
 			ASRReport asrReport = new ASRReport();
-
 			try {
-				this.filename = file.getName();
 
 				asrReport = streamReader.processASRFile(file);
 				reports.add(asrReport);
+				this.filename = file.getName();
 				processedFilenames.add(filename);
-
-				writeOut(asrReport, file);
-
-				moveInArchive(asrReport, file);
 
 			} catch (Exception e) {
 				log.error("An error was encountered while trying to read the ASR file: {}.", e.getMessage());
@@ -102,19 +84,19 @@ public class ReadFileStreamProcessor {
 	}
 
 	// writing files in out folder (asr_ingester2)
-	private void writeOut(ASRReport report, File inputFile) {
-		String outputPath = fileConfig.getPathOut() + "/" + inputFile.getName();
+	public void writeOut(ASRReport report, String filename) {
+		String outputPath = fileConfig.getPathOut() + "/" + filename;
 
 		report.getAllStationTransactions().forEach(
 				trx -> trx.getFormOfPayments().forEach(form -> paymentProcessor.processAPCOPayment(trx, form)));
 		writeToFile(outputPath, report.toString());
 
-		log.info("Finished processing {} ASR file and sent to File out.", inputFile.getName());
+		log.info("Finished processing {} ASR file and sent to File out.", filename);
 	}
 
-	public void moveInArchive(ASRReport report, File inputFile) {
-		Path archivePath = Paths.get(fileConfig.getPathArchive(), inputFile.getName());
-		Path sourcePath = Paths.get(fileConfig.getPathIn(), inputFile.getName());
+	public void moveInArchive(ASRReport report, String filename) {
+		Path archivePath = Paths.get(fileConfig.getPathArchive(), filename);
+		Path sourcePath = Paths.get(fileConfig.getPathIn(), filename);
 
 		writeToFile(archivePath.toString(), report.toString());
 
@@ -122,10 +104,10 @@ public class ReadFileStreamProcessor {
 			Files.move(sourcePath, archivePath, StandardCopyOption.REPLACE_EXISTING);
 			log.info("File moved to archive: {}.", archivePath);
 		} catch (IOException e) {
-			log.error("Failed to move file {} to archive: {}.", inputFile.getName(), e.getMessage());
+			log.error("Failed to move file {} to archive: {}.", filename, e.getMessage());
 		}
 
-		log.info("ASR file {} successfully saved in archive.", inputFile.getName());
+		log.info("ASR file {} successfully saved in archive.", filename);
 	}
 
 	// writing files for attachment in folder (asr_ingester2/attachments)
@@ -213,8 +195,8 @@ public class ReadFileStreamProcessor {
 		return attachments;
 	}
 
-	public List<String> getProcessedFileNames() {
-		return new ArrayList<>(processedFilenames);
+	public Set<String> getProcessedFileNames() {
+		return new HashSet<>(processedFilenames);
 	}
 
 	public String getFilename() {

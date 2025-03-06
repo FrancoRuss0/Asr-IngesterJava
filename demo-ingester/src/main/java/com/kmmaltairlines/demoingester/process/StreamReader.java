@@ -21,8 +21,6 @@ public class StreamReader {
 	public ASRReport processASRFile(File asrFile) throws IOException {
 		if (asrFile == null || !asrFile.exists() || !asrFile.isFile()) {
 			log.error("An error was encountered while trying to read the ASR file.");
-//			mailRequest.setSubject("ASR Processing");
-//			mailRequest.setTemplateMessage("asrFileFailure", null);
 			throw new IllegalArgumentException("Invalid file: " + asrFile);
 		} else {
 			this.filename = asrFile.getName();

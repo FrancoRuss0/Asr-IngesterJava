@@ -13,6 +13,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import com.kmmaltairlines.demoingester.model.ASRReport;
 import com.kmmaltairlines.demoingester.model.StationTransaction;
@@ -61,24 +62,32 @@ public class ProcessAsr implements CommandLineRunner {
 	}
 
 	// process-asr-file-flow
+	@Scheduled(fixedRateString = "#{@asrFileConfig.pollingFrequency}")
 	public void processASRFile() {
 
 		List<ASRBookingDetail> bookingDetailsList = new ArrayList<>();
 
+		log.info("Scanning for new files...");
+
 		try {
 			List<ASRReport> reports = fstreamProcessor.process();
-
+			
+			if (reports.isEmpty()) {
+				log.error("No files found.");
+			} else {
+				log.info("Processed {} new ASR report/s.", reports.size());
+			}
 
 			// getAllStationTransactions da ASRReport
 			for (ASRReport report : reports) {
-				
+
 				ASRProcessReport processReport = new ASRProcessReport();
 
 				String filename = fstreamProcessor.getFilename();
 				if (filename == null || filename.isEmpty()) {
 					filename = "default_processed_filename"; // fallback
 				}
-				
+
 				// creazione dell'ASRProcessReport con filename
 				processReport.setFilename(filename);
 				log.info("Filename -> {}", filename);
@@ -117,7 +126,6 @@ public class ProcessAsr implements CommandLineRunner {
 								// which set contains the PCC?
 								if (this.pccContainer.isSabredx(pcc)) {
 									log.info("Processing SabreDX Payment.");
-									asrReportingState = paymentProcessor.getAsrReportingState();
 									asrReportingState = "CHANGED";
 									paymentProcessor.processPayment(trx, pcc, form);
 								} else if (this.pccContainer.isWebsite(pcc)) {
@@ -173,6 +181,8 @@ public class ProcessAsr implements CommandLineRunner {
 					}
 				}
 
+				fstreamProcessor.writeOut(report, filename);
+				fstreamProcessor.moveInArchive(report, filename);
 				fstreamProcessor.writeReportForAttachment(processReport, filename);
 			}
 
@@ -180,17 +190,17 @@ public class ProcessAsr implements CommandLineRunner {
 			mailRequest.setAttachments(fstreamProcessor.getAttachments());
 
 			// email
-	        if (!emailSent) {
-	            try {
-	                log.info("Preparing ASR Process Report");
-	                mailRequest.setSubject("ASR Report - Process Start: " + processReport.getProcessStartAsString());
-	                mailRequest.setTemplateMessage("asrFileSuccess", null);
-	                mailService.sendEmail(mailRequest);  // Invio email di successo
-	                log.info("ASR Process Report successfully sent via email.");
-	            } catch (Exception e) {
-	                log.error("An error was encountered while trying to send the ASR Process Report via email.", e);
-	            }
-	        }
+			if (!emailSent) {
+				try {
+					log.info("Preparing ASR Process Report");
+					mailRequest.setSubject("ASR Report - Process Start: " + processReport.getProcessStartAsString());
+					mailRequest.setTemplateMessage("asrFileSuccess", null);
+					mailService.sendEmail(mailRequest); // Invio email di successo
+					log.info("ASR Process Report successfully sent via email.");
+				} catch (Exception e) {
+					log.error("An error was encountered while trying to send the ASR Process Report via email.", e);
+				}
+			}
 		} catch (Exception e) {
 			log.info("General error occurred during ASR file processing.");
 			e.printStackTrace();
