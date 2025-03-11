@@ -34,7 +34,7 @@ public class APCOPaymentProcessor {
 	public APCOPaymentProcessor(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-	
+
 	// database connection
 	public Connection connectToDatabase() throws SQLException {
 		Connection connection = dataSource.getConnection();
@@ -44,9 +44,9 @@ public class APCOPaymentProcessor {
 	// select APCO payments lookup
 	public List<Map<String, Object>> lookupAPCOPayment(String pnr, String authCode, java.sql.Date saleDate,
 			BigDecimal combinedTrxAmount) {
-		
+
 		List<Map<String, Object>> results = new ArrayList<>();
-		
+
 		if (pnr == null || authCode == null || saleDate == null || combinedTrxAmount == null) {
 			log.error("Error: One of the parameter is null.");
 			return null;
@@ -85,16 +85,18 @@ public class APCOPaymentProcessor {
 		}
 
 		String pnr = trx.getPNR();
-		StationTransactionGroup firstGroup = trx.getStationRecord().getStationTransactionGroups().values().stream().findFirst().orElse(null);
+		StationTransactionGroup firstGroup = trx.getStationRecord().getStationTransactionGroups().values().stream()
+				.findFirst().orElse(null);
 		String authCode = (firstGroup != null) ? firstGroup.getAuthCode() : null;
 
 		if (authCode != null) {
-			
+
 			java.sql.Date saleDate = trx.getSaleDateAsSQLDate();
 
 			// select APCO payments lookup: set paymentLookup
-			log.info("Performing lookup against APCO records for PNR {} and AuthCode {}, Sale Date: {}.", pnr, authCode, saleDate);
-			
+			log.info("Performing lookup against APCO records for PNR {} and AuthCode {}, Sale Date: {}.", pnr, authCode,
+					saleDate);
+
 			// getCombinedTotal
 			BigDecimal combinedTrxAmount = firstGroup.getCombinedTotal();
 
@@ -105,10 +107,13 @@ public class APCOPaymentProcessor {
 				modifyCardNumber(paymentLookup.get(0), form);
 				this.asrReportingState = "CHANGED";
 				this.asrReportingErrorMessage = null;
+				setAsrReportingErrorMessage(asrReportingErrorMessage);
 			} else {
-				log.error("Could not find PNR {} against APCO payments, with AuthCode {} and Sale Date {}.", pnr, authCode, saleDate);
+				log.error("Could not find PNR {} against APCO payments, with AuthCode {} and Sale Date {}.", pnr,
+						authCode, saleDate);
 				this.asrReportingState = "MISMATCH";
 				this.asrReportingErrorMessage = "Failed to find a matching APCO payment in APCO_PAYMENTS. The APCO payments file might not have been loaded yet.";
+				setAsrReportingErrorMessage(asrReportingErrorMessage);
 				return;
 			}
 		} else {
@@ -148,5 +153,5 @@ public class APCOPaymentProcessor {
 	public void setAsrReportingErrorMessage(String asrReportingErrorMessage) {
 		this.asrReportingErrorMessage = asrReportingErrorMessage;
 	}
-	
+
 }

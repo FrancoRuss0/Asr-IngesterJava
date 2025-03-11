@@ -176,7 +176,7 @@ public class ReadFileStreamProcessor {
 			String[] parts = line.split(", ");
 			for (String part : parts) {
 				if (part.startsWith("State: ") && part.substring(7).trim().equalsIgnoreCase("null")) {
-					return true; // Escludi la riga se State è "null"
+					return true; // Esclude la riga se State == "null"
 				}
 			}
 		} catch (Exception e) {

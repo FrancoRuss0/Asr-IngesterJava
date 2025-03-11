@@ -11,7 +11,9 @@ import java.util.regex.Pattern;
 //import org.mule.api.routing.filter.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ASRFileNameFilter implements FilenameFilter{ // Filter {
 
     public static final DateTimeFormatter ASR_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");

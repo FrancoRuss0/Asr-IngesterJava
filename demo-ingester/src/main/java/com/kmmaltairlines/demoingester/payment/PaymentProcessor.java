@@ -54,11 +54,12 @@ public class PaymentProcessor {
 			// ref: APCO
 			apcoProcessor.processAPCOPayment(stationTransaction, form);
 		} else {
-			// OGONE
+			// ref: OGONE
 			handleOGONEPayment(stationTransaction);
 		}
 	}
 	
+	// TODO: implementare per i pagamenti OGONE (la logica potrebbe essere la stessa di APCO)
 	public void handleOGONEPayment(StationTransaction trx) {
 		log.info("Handling OGONE Payment for PNR: {}.", trx.getPNR());
 	}
@@ -75,7 +76,7 @@ public class PaymentProcessor {
 		return asrReportingErrorMessage;
 	}
 
-	public void setAsrReportingErrorMessage() {
+	public void setAsrReportingErrorMessage(String errorString) {
 		this.asrReportingErrorMessage = apcoProcessor.getAsrReportingErrorMessage();
 	}
 	

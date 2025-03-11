@@ -142,6 +142,7 @@ public class ProcessAsr {
 										pnr);
 								asrReportingState = "ERROR";
 								asrReportingErrorMessage = Utility.rootCause(e).toString();
+								paymentProcessor.setAsrReportingErrorMessage(asrReportingErrorMessage);
 
 								// email di errore
 								if (!emailSent) {
