@@ -9,8 +9,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.PropertySource;
@@ -32,42 +30,33 @@ import com.kmmaltairlines.mail.MailService;
 @SpringBootApplication(scanBasePackages = "com")
 @PropertySource("classpath:application.properties")
 @EnableScheduling
-public class ProcessAsr implements CommandLineRunner {
+public class ProcessAsr {
 
+	private PaymentProcessor paymentProcessor;
 	private ReadFileStreamProcessor fstreamProcessor;
 	private final PCCContainerFactoryBean pccContainer;
-	private final ASRProcessReport processReport;
 	private final MailService mailService;
 	private final EmailRequest mailRequest;
 	private boolean emailSent = false;
 
 	Logger log = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private PaymentProcessor paymentProcessor;
-
-	public ProcessAsr(ReadFileStreamProcessor fstreamProcessor, PCCContainerFactoryBean pccContainer,
-			ASRProcessReport processReport, MailService mailService, EmailRequest mailRequest) {
+	public ProcessAsr(PaymentProcessor paymentProcessor, ReadFileStreamProcessor fstreamProcessor,
+			PCCContainerFactoryBean pccContainer, MailService mailService, EmailRequest mailRequest) {
 		this.fstreamProcessor = fstreamProcessor;
 		this.pccContainer = pccContainer;
-		this.processReport = processReport;
 		this.mailService = mailService;
 		this.mailRequest = mailRequest;
+		this.paymentProcessor = paymentProcessor;
 	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(ProcessAsr.class, args);
 	}
 
-	public void run(String... args) throws Exception {
-		processASRFile();
-	}
-
 	// process-asr-file-flow
 	@Scheduled(fixedRateString = "#{@asrFileConfig.pollingFrequency}")
 	public void processASRFile() {
-
-		List<ASRBookingDetail> bookingDetailsList = new ArrayList<>();
 
 		log.info("Scanning for new files...");
 
@@ -121,7 +110,7 @@ public class ProcessAsr implements CommandLineRunner {
 									"Encountered a card payment method, attempting lookup against PG_Payments to identify customer.");
 
 							// ref: alter-card-payment-method-flow
-							// set transactionGroup per pnr e authcode
+							// set transactionGroup per pnr e authcode. Inutilizzata ???
 							StationTransactionGroup transactionGroup = trx.getStationRecord().getTransactionGroup(pnr,
 									authCode);
 
@@ -177,7 +166,6 @@ public class ProcessAsr implements CommandLineRunner {
 
 						// aggiunta di dettagli all'ASRProcessReport
 						processReport.addBookingDetail(bookingDetails);
-						bookingDetailsList = processReport.getBookingDetails();
 
 						// setProcessEnd
 						processReport.setProcessEnd(ZonedDateTime.now());
@@ -189,12 +177,11 @@ public class ProcessAsr implements CommandLineRunner {
 				fstreamProcessor.moveInArchive(asrReport, filename);
 				fstreamProcessor.writeReportForAttachment(processReport, filename);
 
-
 				// ricerca dell'allegato specifico in base al filename
 				List<File> attachmentFiles = new ArrayList<>();
 				File attachment = fstreamProcessor.getAttachmentByFilename(filename);
-				
-				if(attachment != null) {
+
+				if (attachment != null) {
 					attachmentFiles.add(attachment);
 				} else {
 					log.warn("No attachment found for filename: {}", filename);
