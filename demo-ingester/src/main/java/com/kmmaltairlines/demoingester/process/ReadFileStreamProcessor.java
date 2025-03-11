@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.kmmaltairlines.demoingester.config.AsrFileConfig;
+import com.kmmaltairlines.demoingester.file.ASRFileNameFilter;
 import com.kmmaltairlines.demoingester.model.ASRReport;
 import com.kmmaltairlines.demoingester.payment.APCOPaymentProcessor;
 import com.kmmaltairlines.demoingester.process.reporting.ASRProcessReport;
@@ -29,23 +30,27 @@ import com.kmmaltairlines.demoingester.process.reporting.ASRReportingUtils;
 public class ReadFileStreamProcessor {
 	Logger log = LoggerFactory.getLogger(getClass());
 
-	private String filename;
 	private AsrFileConfig fileConfig;
 	private StreamReader streamReader;
 	private Set<String> processedFilenames = new HashSet<>();
 	private APCOPaymentProcessor paymentProcessor;
+	private ASRFileNameFilter nameFilter;
 
 	public ReadFileStreamProcessor(AsrFileConfig fileConfig, StreamReader streamReader,
-			APCOPaymentProcessor paymentProcessor) {
+			APCOPaymentProcessor paymentProcessor, ASRFileNameFilter nameFilter) {
 		this.fileConfig = fileConfig;
 		this.streamReader = streamReader;
 		this.paymentProcessor = paymentProcessor;
+		this.nameFilter = nameFilter;
 	}
 
 	public Map<String, ASRReport> process() {
 		File directoryPath = new File(fileConfig.getPathIn());
-		File[] fileList = directoryPath
-				.listFiles(file -> file.isFile() && file.getName().toLowerCase().endsWith(".cmp"));
+
+		// vengono processati solo i file il cui nome rispetta quello specificato in ASRFileNameFilter
+		// e tali che siano "vecchi" di almeno delayInDays giorni. Spring gestisce in automatico delayInDays
+		// con valore pari a zero perché è di tipo in
+		File[] fileList = directoryPath.listFiles(nameFilter);
 
 		if (fileList == null || fileList.length == 0) {
 			return new HashMap<>();
@@ -216,9 +221,5 @@ public class ReadFileStreamProcessor {
 
 	public Set<String> getProcessedFileNames() {
 		return new HashSet<>(processedFilenames);
-	}
-
-	public String getFilename() {
-		return filename;
 	}
 }
