@@ -9,8 +9,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -38,32 +40,30 @@ public class ReadFileStreamProcessor {
 		this.fileConfig = fileConfig;
 		this.streamReader = streamReader;
 		this.paymentProcessor = paymentProcessor;
-		this.filename = streamReader.getFilename();
 	}
 
-	public List<ASRReport> process() {
+	public Map<String, ASRReport> process() {
 		File directoryPath = new File(fileConfig.getPathIn());
 		File[] fileList = directoryPath
 				.listFiles(file -> file.isFile() && file.getName().toLowerCase().endsWith(".cmp"));
 
 		if (fileList == null || fileList.length == 0) {
-			return new ArrayList<>();
+			return new HashMap<>();
 		}
 
-		List<ASRReport> reports = new ArrayList<>();
+		Map<String, ASRReport> reports = new HashMap<>();
 		for (File file : fileList) {
+
+			String currentFilename = file.getName();
+
 			if (processedFilenames.contains(file.getName())) {
 				continue;
 			}
 
-			String currentFilename = file.getName();
-			ASRReport asrReport = new ASRReport();
 			try {
-
-				asrReport = streamReader.processASRFile(file);
-				reports.add(asrReport);
-				this.filename = file.getName();
-				processedFilenames.add(filename);
+				ASRReport asrReport = streamReader.processASRFile(file);
+				reports.put(currentFilename, asrReport);
+				processedFilenames.add(currentFilename);
 
 			} catch (Exception e) {
 				log.error("An error was encountered while trying to read the ASR file: {}.", e.getMessage());
@@ -141,7 +141,8 @@ public class ReadFileStreamProcessor {
 
 	private String extractUniqueKey(String line) {
 		try {
-			// estrazione dei campi rilevanti (PNR, SaleDate, PCC, PaymentMethod) per evitare duplicati
+			// estrazione dei campi rilevanti (PNR, SaleDate, PCC, PaymentMethod) per
+			// evitare duplicati
 			String[] parts = line.split(", ");
 			String pnr = null, saleDate = null, pcc = null, paymentMethod = null;
 
@@ -193,6 +194,24 @@ public class ReadFileStreamProcessor {
 			log.error("Error: attachments not found.");
 		}
 		return attachments;
+	}
+
+	public File getAttachmentByFilename(String filename) {
+		File attachFolder = new File(fileConfig.getPathAttachments());
+
+		if (!attachFolder.exists() || !attachFolder.isDirectory()) {
+			log.error("Error: attachments folder not found.");
+			return null;
+		}
+
+		File[] files = attachFolder.listFiles(file -> file.isFile() && file.getName().equals(filename));
+
+		if (files != null && files.length > 0) {
+			return files[0]; // Restituisce il file corrispondente al filename
+		} else {
+			log.warn("No attachment found for filename: {}", filename);
+			return null;
+		}
 	}
 
 	public Set<String> getProcessedFileNames() {

@@ -1,9 +1,11 @@
 package com.kmmaltairlines.demoingester;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,8 +72,8 @@ public class ProcessAsr implements CommandLineRunner {
 		log.info("Scanning for new files...");
 
 		try {
-			List<ASRReport> reports = fstreamProcessor.process();
-			
+			Map<String, ASRReport> reports = fstreamProcessor.process();
+
 			if (reports.isEmpty()) {
 				log.error("No files found.");
 			} else {
@@ -79,11 +81,13 @@ public class ProcessAsr implements CommandLineRunner {
 			}
 
 			// getAllStationTransactions da ASRReport
-			for (ASRReport report : reports) {
+			for (Map.Entry<String, ASRReport> entry : reports.entrySet()) {
+
+				String filename = entry.getKey();
+				ASRReport asrReport = entry.getValue();
 
 				ASRProcessReport processReport = new ASRProcessReport();
 
-				String filename = fstreamProcessor.getFilename();
 				if (filename == null || filename.isEmpty()) {
 					filename = "default_processed_filename"; // fallback
 				}
@@ -91,7 +95,7 @@ public class ProcessAsr implements CommandLineRunner {
 				// creazione dell'ASRProcessReport con filename
 				processReport.setFilename(filename);
 				log.info("Filename -> {}", filename);
-				List<StationTransaction> allTrxs = report.getAllStationTransactions();
+				List<StationTransaction> allTrxs = asrReport.getAllStationTransactions();
 
 				// for each station transaction
 				for (StationTransaction trx : allTrxs) {
@@ -181,26 +185,37 @@ public class ProcessAsr implements CommandLineRunner {
 					}
 				}
 
-				fstreamProcessor.writeOut(report, filename);
-				fstreamProcessor.moveInArchive(report, filename);
+				fstreamProcessor.writeOut(asrReport, filename);
+				fstreamProcessor.moveInArchive(asrReport, filename);
 				fstreamProcessor.writeReportForAttachment(processReport, filename);
-			}
 
-			// allegati
-			mailRequest.setAttachments(fstreamProcessor.getAttachments());
 
-			// email
-			if (!emailSent) {
-				try {
-					log.info("Preparing ASR Process Report");
-					mailRequest.setSubject("ASR Report - Process Start: " + processReport.getProcessStartAsString());
-					mailRequest.setTemplateMessage("asrFileSuccess", null);
-					mailService.sendEmail(mailRequest); // Invio email di successo
-					log.info("ASR Process Report successfully sent via email.");
-				} catch (Exception e) {
-					log.error("An error was encountered while trying to send the ASR Process Report via email.", e);
+				// ricerca dell'allegato specifico in base al filename
+				List<File> attachmentFiles = new ArrayList<>();
+				File attachment = fstreamProcessor.getAttachmentByFilename(filename);
+				
+				if(attachment != null) {
+					attachmentFiles.add(attachment);
+				} else {
+					log.warn("No attachment found for filename: {}", filename);
+				}
+
+				mailRequest.setAttachments(attachmentFiles);
+				// email
+				if (!emailSent) {
+					try {
+						log.info("Preparing ASR Process Report");
+						mailRequest
+								.setSubject("ASR Report - Process Start: " + processReport.getProcessStartAsString());
+						mailRequest.setTemplateMessage("asrFileSuccess", null);
+						mailService.sendEmail(mailRequest); // Invio email di successo
+						log.info("ASR Process Report successfully sent via email.");
+					} catch (Exception e) {
+						log.error("An error was encountered while trying to send the ASR Process Report via email.", e);
+					}
 				}
 			}
+
 		} catch (Exception e) {
 			log.info("General error occurred during ASR file processing.");
 			e.printStackTrace();
