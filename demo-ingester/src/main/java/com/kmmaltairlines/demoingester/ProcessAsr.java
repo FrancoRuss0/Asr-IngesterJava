@@ -119,18 +119,28 @@ public class ProcessAsr {
 								// which set contains the PCC?
 								if (this.pccContainer.isSabredx(pcc)) {
 									log.info("Processing SabreDX Payment.");
-									asrReportingState = "CHANGED";
-									paymentProcessor.processPayment(trx, pcc, form);
+									// lookup-sabredx-payments-subflow
+									paymentProcessor.processPayment(trx, form);
+									asrReportingState = paymentProcessor.getApcoProcessor().getAsrReportingState();
+									asrReportingErrorMessage = paymentProcessor.getApcoProcessor().getAsrReportingErrorMessage();
 								} else if (this.pccContainer.isWebsite(pcc)) {
 									log.info("Processing Website Payment.");
-									asrReportingState = paymentProcessor.getAsrReportingState();
-									paymentProcessor.processPayment(trx, pcc, form);
-								} else if (this.pccContainer.isPaxport(pcc) || this.pccContainer.isRyanair(pcc)) {
+									// lookup-website-payments-subflow
+									paymentProcessor.processPayment(trx, form);
+									asrReportingState = paymentProcessor.getApcoProcessor().getAsrReportingState();
+									asrReportingErrorMessage = paymentProcessor.getApcoProcessor().getAsrReportingErrorMessage();
+								} else if (this.pccContainer.isPaxport(pcc)) {
+									// lookup-paxport-payments-processor
+									paymentProcessor.handleOGONEPayment(trx);
+								} else if (this.pccContainer.isRyanair(pcc)){
+									// lookup-ryanair-payments-processor
 									paymentProcessor.handleOGONEPayment(trx);
 								} else {
+									// INFO Unsupported PCC
 									log.error(
 											"Ignoring PCC since we do not support modifications on non-IBE and non-RyanAir payments.");
-									asrReportingState = "ERROR";
+									paymentProcessor.getApcoProcessor().setAsrReportingState("UNCHANGED");
+									asrReportingState = paymentProcessor.getApcoProcessor().getAsrReportingState();
 								}
 
 								// simulazione errore
@@ -140,9 +150,10 @@ public class ProcessAsr {
 								log.error(
 										"An error was encountered when attempting to lookup BIN information for CCPS payment for PNR: {}.",
 										pnr);
-								asrReportingState = "ERROR";
-								asrReportingErrorMessage = Utility.rootCause(e).toString();
-								paymentProcessor.setAsrReportingErrorMessage(asrReportingErrorMessage);
+								paymentProcessor.getApcoProcessor().setAsrReportingState("ERROR");
+								paymentProcessor.getApcoProcessor().setAsrReportingErrorMessage(Utility.rootCause(e).toString());
+								asrReportingState = paymentProcessor.getApcoProcessor().getAsrReportingState();
+								asrReportingErrorMessage = paymentProcessor.getApcoProcessor().getAsrReportingErrorMessage();
 
 								// email di errore
 								if (!emailSent) {

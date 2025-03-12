@@ -38,7 +38,7 @@ public class ASRReportingUtils {
 	                asrBookingDetail.getPCC(),
 	                asrBookingDetail.getPaymentMethod() + ","));
 	        if (asrBookingDetail.getErrorMessage() != null) {
-	            builder.append(String.format(" State: %-10s, ErrorMessage: %s",
+	            builder.append(String.format(" State: %-10s ErrorMessage: %s",
 	                    asrBookingDetail.getState() + ",",
 	                    asrBookingDetail.getErrorMessage()));
 	        } else {

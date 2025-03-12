@@ -105,15 +105,17 @@ public class APCOPaymentProcessor {
 
 			if (paymentLookup != null && !paymentLookup.isEmpty()) {
 				modifyCardNumber(paymentLookup.get(0), form);
-				this.asrReportingState = "CHANGED";
-				this.asrReportingErrorMessage = null;
-				setAsrReportingErrorMessage(asrReportingErrorMessage);
+				setAsrReportingState("CHANGED");
+				setAsrReportingErrorMessage(null);
 			} else {
 				log.error("Could not find PNR {} against APCO payments, with AuthCode {} and Sale Date {}.", pnr,
 						authCode, saleDate);
-				this.asrReportingState = "MISMATCH";
-				this.asrReportingErrorMessage = "Failed to find a matching APCO payment in APCO_PAYMENTS. The APCO payments file might not have been loaded yet.";
-				setAsrReportingErrorMessage(asrReportingErrorMessage);
+				setAsrReportingState("MISMATCH");
+				setAsrReportingErrorMessage("Failed to find a matching APCO payment in APCO_PAYMENTS. The APCO payments file might not have been loaded yet.");
+				
+				// QUI CI SONO !!!!
+//				System.out.println("STATO: " + getAsrReportingState());
+//				System.out.println("MESSAGGIO DI ERRORE: " + getAsrReportingErrorMessage());
 				return;
 			}
 		} else {

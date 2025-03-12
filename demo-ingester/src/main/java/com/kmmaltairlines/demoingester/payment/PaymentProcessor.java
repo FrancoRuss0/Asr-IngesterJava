@@ -16,15 +16,13 @@ public class PaymentProcessor {
 
 	Logger log = LoggerFactory.getLogger(getClass());
 	
-	private String asrReportingState;
-	private String asrReportingErrorMessage;
 	private final APCOPaymentProcessor apcoProcessor;
 	
 	public PaymentProcessor (APCOPaymentProcessor apcoProcessor) {
 		this.apcoProcessor = apcoProcessor;
 	}
 	
-	public void processPayment(StationTransaction stationTransaction, String pcc, BKP84 form) {
+	public void processPayment(StationTransaction stationTransaction, BKP84 form) {
 		if(this.apcoProcessor != null) {
 			this.apcoProcessor.processAPCOPayment(stationTransaction, form);
 		} else {
@@ -64,20 +62,8 @@ public class PaymentProcessor {
 		log.info("Handling OGONE Payment for PNR: {}.", trx.getPNR());
 	}
 
-	public String getAsrReportingState() {
-		return asrReportingState;
-	}
-
-	public void setAsrReportingState() {
-		this.asrReportingState = apcoProcessor.getAsrReportingState();
-	}
-
-	public String getAsrReportingErrorMessage() {
-		return asrReportingErrorMessage;
-	}
-
-	public void setAsrReportingErrorMessage(String errorString) {
-		this.asrReportingErrorMessage = apcoProcessor.getAsrReportingErrorMessage();
+	public APCOPaymentProcessor getApcoProcessor() {
+		return apcoProcessor;
 	}
 	
 }

@@ -79,27 +79,31 @@ public class PCCContainerFactoryBean implements FactoryBean<Set<String>>, Initia
     
     @Override
     public Class<?> getObjectType() {
-        return (Class) Set.class;
+        return Set.class;
     }
 
     @Override
     public boolean isSingleton() {
         return true;
-    }    
+    }   
+    
+    public boolean isPCC(String pcc, Set<String> pccSet) {
+    	return pccSet.contains(pcc.trim().toUpperCase());
+    }
     
     public boolean isPaxport(String pcc) {
-    	return paxportSet.contains(pcc.trim().toUpperCase());
+    	return isPCC(pcc, paxportSet);
     }
     
     public boolean isRyanair(String pcc) {
-    	return ryanairSet.contains(pcc.trim().toUpperCase());
+    	return isPCC(pcc, ryanairSet);
     }
     
     public boolean isSabredx(String pcc) {
-    	return sabredxSet.contains(pcc.trim().toUpperCase());
+    	return isPCC(pcc, sabredxSet);
     }
     
     public boolean isWebsite(String pcc) {
-    	return websiteSet.contains(pcc.trim().toUpperCase());
+    	return isPCC(pcc, websiteSet);
     }
 }
