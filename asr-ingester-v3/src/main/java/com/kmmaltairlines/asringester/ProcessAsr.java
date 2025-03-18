@@ -107,10 +107,6 @@ public class ProcessAsr {
 							log.info(
 									"Encountered a card payment method, attempting lookup against PG_Payments to identify customer.");
 
-							// ref: alter-card-payment-method-flow
-							// set transactionGroup per pnr e authcode. Inutilizzata ???
-							StationTransactionGroup transactionGroup = trx.getStationRecord().getTransactionGroup(pnr,
-									authCode);
 
 							// Which PCC sold the ticket?
 							try {
