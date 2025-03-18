@@ -17,7 +17,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import com.kmmaltairlines.asringester.model.ASRReport;
 import com.kmmaltairlines.asringester.model.StationTransaction;
-import com.kmmaltairlines.asringester.model.StationTransactionGroup;
 import com.kmmaltairlines.asringester.model.bkp.BKP84;
 import com.kmmaltairlines.asringester.payment.PaymentProcessor;
 import com.kmmaltairlines.asringester.process.ReadFileStreamProcessor;
@@ -95,7 +94,6 @@ public class ProcessAsr {
 						log.info("Processing transaction for {} payment/s for PNR: {}.", forms.size(), pnr);
 
 						String seqNumber = form.getSeqNumber();
-						String authCode = form.getAuthCode();
 						String paymentType = form.getFormOfPaymentType();
 						String asrReportingState = null;
 						String asrReportingErrorMessage = null;
@@ -137,9 +135,6 @@ public class ProcessAsr {
 									asrReportingState = paymentProcessor.getApcoProcessor().getAsrReportingState();
 								}
 
-								// simulazione errore per invio email
-//								throw new RuntimeException("Simulated error during payment processing");
-
 							} catch (Exception e) {
 								log.error(
 										"An error was encountered when attempting to lookup BIN information for CCPS payment for PNR: {}.",
@@ -148,9 +143,6 @@ public class ProcessAsr {
 								paymentProcessor.getApcoProcessor().setAsrReportingErrorMessage(Utility.rootCause(e).toString());
 								asrReportingState = paymentProcessor.getApcoProcessor().getAsrReportingState();
 								asrReportingErrorMessage = paymentProcessor.getApcoProcessor().getAsrReportingErrorMessage();
-								
-//								asrReportingState = "ERROR";
-//								asrReportingErrorMessage = Utility.rootCause(e).toString();
 								
 								// email di errore
 								if (!emailSent) {
@@ -186,7 +178,7 @@ public class ProcessAsr {
 				}
 
 				// scrittura su file di uscita (file modificato), spostamento dalla cartella di lettura alla cartella di archivio (file invariato),
-				// scrittura allegato per ogni processReport
+				// scrittura allegato per ogni processReport generato
 				fstreamProcessor.writeOut(asrReport, filename);
 				fstreamProcessor.moveInArchive(asrReport, filename);
 				fstreamProcessor.writeReportForAttachment(processReport, filename);
