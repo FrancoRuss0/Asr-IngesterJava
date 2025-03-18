@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.kmmaltairlines</groupId>
-	<artifactId>demo-ingester</artifactId>
+	<artifactId>asr-ingester-v3</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>demo-ingester</name>
+	<name>asr-ingester-v3</name>
 	
 	<properties>
 		<java.version>17</java.version>
